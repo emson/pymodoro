@@ -45,6 +45,12 @@ class PomodoroTimer:
         else:
             self.resume()
     
+    def reset(self):
+        """Reset the current session timer to its full duration."""
+        self.time_left = self.settings[self.current_session]
+        self._last_tick_time = time.monotonic()
+        # Keep the timer running state as it was
+    
     def tick(self):
         if not self.is_running:
             return False  # No change
