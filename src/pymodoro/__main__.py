@@ -15,9 +15,10 @@ def main():
         epilog="""
 KEYBOARD CONTROLS (during runtime):
   SPACE         Pause/Resume the current session
-  N             Skip to next session (with confirmation)
-  R             Reset current session to beginning (with confirmation)
-  Q             Quit the application (with confirmation)
+  n             Skip to next session (with confirmation)
+  r             Reset current session to beginning (with confirmation)
+  q             Quit the application (with confirmation)
+  h             Show help screen
 
 ABOUT THE POMODORO TECHNIQUE:
   The Pomodoro Technique is a time management method that uses a timer to break
@@ -93,32 +94,54 @@ For more information about the Pomodoro Technique:
     try:
         with TerminalKeyboard() as kb, Live(ui.get_renderable(), screen=True, redirect_stderr=False, refresh_per_second=10) as live:
             should_exit = False
-            confirmation_state = None  # None, 'skip', 'reset', or 'quit'
+            confirmation_state = None  # None, 'skip', 'reset', 'quit', or 'help'
             
             while not should_exit:
                 key = kb.getch()
                 if key:
                     if confirmation_state:
-                        # Handle confirmation responses
-                        if key.lower() == 'y':
-                            if confirmation_state == 'skip':
-                                # Execute skip action - update timer first, then play sound
-                                current_session_type = timer.current_session
-                                timer.next_session(skip=True)
-                                # Play sound asynchronously after state change
-                                if current_session_type == SessionType.WORK:
-                                    play_work_end()
-                                else:
-                                    play_break_end()
-                            elif confirmation_state == 'reset':
-                                # Execute reset action
-                                timer.reset()
-                            elif confirmation_state == 'quit':
-                                # Execute quit action
-                                should_exit = True
-                            confirmation_state = None
-                        elif key.lower() == 'n' or key == ' ':  # N or spacebar cancels
-                            confirmation_state = None
+                        # Handle confirmation/help screen responses
+                        if confirmation_state == 'help':
+                            # Any key dismisses help screen (except for action keys which should still work)
+                            if key.lower() == 'h' or key == '\x1b':  # h or ESC explicitly close help
+                                confirmation_state = None
+                            elif key == ' ':
+                                # Space should work normally (pause/resume) even from help
+                                timer.toggle_pause()
+                                confirmation_state = None
+                            elif key.lower() == 'n':
+                                # N should work normally (skip) even from help
+                                confirmation_state = 'skip'
+                            elif key.lower() == 'r':
+                                # R should work normally (reset) even from help
+                                confirmation_state = 'reset'
+                            elif key.lower() == 'q':
+                                # Q should work normally (quit) even from help
+                                confirmation_state = 'quit'
+                            else:
+                                # Any other key dismisses help
+                                confirmation_state = None
+                        else:
+                            # Handle normal confirmation responses (skip/reset/quit)
+                            if key.lower() == 'y':
+                                if confirmation_state == 'skip':
+                                    # Execute skip action - update timer first, then play sound
+                                    current_session_type = timer.current_session
+                                    timer.next_session(skip=True)
+                                    # Play sound asynchronously after state change
+                                    if current_session_type == SessionType.WORK:
+                                        play_work_end()
+                                    else:
+                                        play_break_end()
+                                elif confirmation_state == 'reset':
+                                    # Execute reset action
+                                    timer.reset()
+                                elif confirmation_state == 'quit':
+                                    # Execute quit action
+                                    should_exit = True
+                                confirmation_state = None
+                            elif key.lower() == 'n' or key == ' ':  # N or spacebar cancels
+                                confirmation_state = None
                     else:
                         # Handle normal key presses
                         if key == ' ':
@@ -129,6 +152,8 @@ For more information about the Pomodoro Technique:
                             confirmation_state = 'reset'
                         elif key.lower() == 'q':
                             confirmation_state = 'quit'
+                        elif key.lower() == 'h':
+                            confirmation_state = 'help'
                 
                 time.sleep(0.1)
                 
