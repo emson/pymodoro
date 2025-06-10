@@ -48,11 +48,16 @@ class PomodoroUI:
     def __init__(self, timer):
         self.timer = timer
 
-    def get_renderable(self):
+    def get_renderable(self, confirmation_type=None):
         """
         Builds the entire UI renderable from scratch on each update.
         This uses a borderless Table to vertically stack and center components.
+        confirmation_type: None, 'skip', or 'quit' to show confirmation dialog
         """
+        # If showing confirmation, render the confirmation dialog
+        if confirmation_type:
+            return self._render_confirmation(confirmation_type)
+        
         # --- 1. Determine Session State and Colors ---
         is_work = self.timer.current_session == SessionType.WORK
         is_paused = not self.timer.is_running
@@ -105,7 +110,7 @@ class PomodoroUI:
         chunky_progress = Group(progress_bar1, progress_bar2)
         
         # Footer controls text
-        controls = Text("SPACE: Pause/Resume | N: Skip | Q: Quit", justify="center", style="dim")
+        controls = Text("(space) pause | (n)ext | (q)uit", justify="center", style="dim")
         
         # --- 3. Assemble Components in a Table ---
         # A borderless table is used as a layout tool for vertical stacking.
@@ -125,7 +130,78 @@ class PomodoroUI:
         
         # Use a flexible amount of whitespace to push controls to the bottom
         layout_table.add_row("")
+        layout_table.add_row("")
         layout_table.add_row(controls)
 
         # The final renderable is aligned in the center of the screen
         return Align.center(layout_table, vertical="middle")
+
+    def _render_confirmation(self, confirmation_type):
+        """
+        Renders a full-screen confirmation dialog
+        """
+        # Determine colors based on current session
+        is_work = self.timer.current_session == SessionType.WORK
+        is_paused = not self.timer.is_running
+        
+        if is_work:
+            border_color = "red"
+        else:
+            border_color = "green" if self.timer.current_session == SessionType.SHORT_BREAK else "blue"
+        
+        # Override with yellow if paused
+        if is_paused:
+            border_color = "yellow"
+        
+        # Create confirmation content based on type
+        if confirmation_type == 'skip':
+            if is_work:
+                title = "Skip Work Session?"
+                message = f"Skip current work session and start break?\nYou'll lose progress on Pomodoro #{self.timer.pomodoros_completed + 1}."
+            else:
+                title = "Skip Break?"
+                message = "Skip current break and start next work session?"
+        else:  # quit
+            title = "Quit Pymodoro?"
+            message = "Are you sure you want to quit?\nAll progress will be lost."
+        
+        # Show current timer context
+        mins, secs = divmod(int(self.timer.time_left), 60)
+        time_str = f"{mins:02d}:{secs:02d}"
+        
+        if is_work:
+            context = f"Current: Work Session - {time_str} remaining"
+        else:
+            session_name = "Short Break" if self.timer.current_session == SessionType.SHORT_BREAK else "Long Break"
+            context = f"Current: {session_name} - {time_str} remaining"
+        
+        # Create the confirmation dialog content
+        title_text = Text(title, style=f"bold {border_color}", justify="center")
+        context_text = Text(context, style="dim", justify="center")
+        message_text = Text(message, style="white", justify="center")
+        options_text = Text("Y - Yes    N - No    SPACE - Cancel", style="bold white", justify="center")
+        
+        from rich.console import Group
+        confirmation_content = Group(
+            title_text,
+            "",
+            context_text,
+            "",
+            message_text,
+            "",
+            "",
+            options_text
+        )
+        
+        # Create a beautiful modal panel
+        modal_panel = Panel(
+            confirmation_content,
+            border_style=f"bold {border_color}",
+            padding=(2, 4),
+            width=60,
+            title="[bold]Confirmation Required[/bold]",
+            title_align="center"
+        )
+        
+        # Center the modal on screen
+        return Align.center(modal_panel, vertical="middle")
