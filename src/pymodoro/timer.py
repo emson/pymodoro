@@ -8,7 +8,7 @@ class SessionType(Enum):
     LONG_BREAK = auto()
 
 class PomodoroTimer:
-    def __init__(self, work_mins=25, short_break_mins=5, long_break_mins=15):
+    def __init__(self, work_mins=25, short_break_mins=5, long_break_mins=15, warning_mins=1):
         self.settings = {
             SessionType.WORK: work_mins * 60,
             SessionType.SHORT_BREAK: short_break_mins * 60,
@@ -20,6 +20,8 @@ class PomodoroTimer:
         self.pomodoros_completed = 0
         self.start_time = None
         self._last_tick_time = None
+        self.warning_minutes = warning_mins
+        self._warning_played = False  # Track if warning has been played for current session
 
     def start(self):
         if not self.is_running:
@@ -49,7 +51,19 @@ class PomodoroTimer:
         """Reset the current session timer to its full duration."""
         self.time_left = self.settings[self.current_session]
         self._last_tick_time = time.monotonic()
+        self._warning_played = False  # Reset warning state on reset
         # Keep the timer running state as it was
+    
+    def should_play_warning(self) -> bool:
+        """Check if warning should be played (only once per session)."""
+        warning_threshold = self.warning_minutes * 60
+        if (not self._warning_played and 
+            self.is_running and 
+            self.time_left <= warning_threshold and 
+            self.time_left > 0):
+            self._warning_played = True
+            return True
+        return False
     
     def tick(self):
         if not self.is_running:
@@ -76,6 +90,7 @@ class PomodoroTimer:
         
         self.time_left = self.settings[self.current_session]
         self._last_tick_time = time.monotonic()
+        self._warning_played = False  # Reset warning state for new session
         # Ensure it's running when skipping to the next session
         if skip:
             self.is_running = True

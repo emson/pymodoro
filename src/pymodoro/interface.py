@@ -69,11 +69,14 @@ class PomodoroUI:
         """
         Builds the entire UI renderable from scratch on each update.
         This uses a borderless Table to vertically stack and center components.
-        confirmation_type: None, 'skip', or 'quit' to show confirmation dialog
+        confirmation_type: None, 'skip', 'reset', 'quit', or 'help' to show overlay
         """
-        # If showing confirmation, render the confirmation dialog
+        # If showing confirmation or help, render the appropriate overlay
         if confirmation_type:
-            return self._render_confirmation(confirmation_type)
+            if confirmation_type == 'help':
+                return self._render_help()
+            else:
+                return self._render_confirmation(confirmation_type)
         
         # --- 1. Determine Session State and Colors ---
         is_work = self.timer.current_session == SessionType.WORK
@@ -82,11 +85,11 @@ class PomodoroUI:
         if is_work:
             primary_color = "red"
             status_icon = "🍅"
-            status_text = f"Work {status_icon} | Pomodoro #{self.timer.pomodoros_completed + 1}"
+            status_text = f"{status_icon} Pomodoro #{self.timer.pomodoros_completed + 1}"
         else: # It's a break
             primary_color = "green" if self.timer.current_session == SessionType.SHORT_BREAK else "blue"
             status_icon = "☕" if self.timer.current_session == SessionType.SHORT_BREAK else "🛋️"
-            status_text = f"Break {status_icon}"
+            status_text = f"{status_icon} Break"
 
         # Override colors and add text for paused state
         display_color = "yellow" if is_paused else primary_color
@@ -126,8 +129,8 @@ class PomodoroUI:
         from rich.console import Group
         chunky_progress = Group(progress_bar1, progress_bar2)
         
-        # Footer controls text
-        controls = Text("(space) pause  (n)ext   (r)eset   (q)uit", justify="center", style="dim")
+        # Simple help message instead of cluttered controls
+        help_text = Text("Press (h) for help", justify="center", style="dim")
         
         # --- 3. Assemble Components in a Table ---
         # A borderless table is used as a layout tool for vertical stacking.
@@ -147,13 +150,87 @@ class PomodoroUI:
         layout_table.add_row("") # Small spacing before progress bar
         layout_table.add_row(Align.center(chunky_progress))
         
-        # Use a flexible amount of whitespace to push controls to the bottom
+        # Use a flexible amount of whitespace to push help text to the bottom
         layout_table.add_row("")
         layout_table.add_row("")
-        layout_table.add_row(controls)
+        layout_table.add_row(help_text)
 
         # The final renderable is aligned in the center of the screen
         return Align.center(layout_table, vertical="middle")
+
+    def _render_help(self):
+        """
+        Renders a clean help screen with keyboard shortcuts
+        """
+        # Determine colors based on current session
+        is_work = self.timer.current_session == SessionType.WORK
+        is_paused = not self.timer.is_running
+        
+        if is_work:
+            border_color = "red"
+        else:
+            border_color = "green" if self.timer.current_session == SessionType.SHORT_BREAK else "blue"
+        
+        # Override with yellow if paused
+        if is_paused:
+            border_color = "yellow"
+        
+        # Create help table with keyboard shortcuts
+        help_table = Table(show_header=False, box=None, padding=(0, 2))
+        help_table.add_column("Key", style="bold cyan", width=8)
+        help_table.add_column("Action", style="white")
+        
+        # Add keyboard shortcuts
+        help_table.add_row("SPACE", "Pause/Resume the current session")
+        help_table.add_row("n", "Skip to next session (with confirmation)")
+        help_table.add_row("r", "Reset current session (with confirmation)")
+        help_table.add_row("q", "Quit application (with confirmation)")
+        help_table.add_row("h", "Show/hide this help screen")
+        help_table.add_row("", "")  # Empty row for spacing
+        help_table.add_row("ESC", "Close this help screen")
+        
+        # Show current session context
+        mins, secs = divmod(int(self.timer.time_left), 60)
+        time_str = f"{mins:02d}:{secs:02d}"
+        
+        if is_work:
+            session_text = f"Work Session - {time_str} remaining"
+            status_text = f"Pomodoro #{self.timer.pomodoros_completed + 1}"
+        else:
+            session_name = "Short Break" if self.timer.current_session == SessionType.SHORT_BREAK else "Long Break"
+            session_text = f"{session_name} - {time_str} remaining"
+            status_text = "Break Time"
+        
+        if is_paused:
+            session_text += " (PAUSED)"
+        
+        context_text = Text(f"Current: {session_text}", style="dim", justify="center")
+        status_display = Text(status_text, style=f"bold {border_color}", justify="center")
+        
+        from rich.console import Group
+        help_content = Group(
+            status_display,
+            context_text,
+            "",
+            Text("KEYBOARD SHORTCUTS", style="bold white", justify="center"),
+            "",
+            help_table,
+            "",
+            Text("Press any key to close this help screen", style="dim", justify="center")
+        )
+        
+        # Create help panel
+        help_panel = Panel(
+            help_content,
+            border_style=f"bold {border_color}",
+            padding=(2, 4),
+            width=65,
+            title="[bold]🍅 Pymodoro Help[/bold]",
+            title_align="center"
+        )
+        
+        # Center the help screen
+        return Align.center(help_panel, vertical="middle")
 
     def _render_confirmation(self, confirmation_type):
         """
