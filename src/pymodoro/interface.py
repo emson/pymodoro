@@ -27,6 +27,23 @@ TOMATO_ART = """
         [dark_orange]████████████[/dark_orange]
 """
 
+BREAK_TOMATO_ART = """
+             [bold green]▒▒[/bold green]
+      [bold green]▒▒[/bold green]     [bold green]▒▒[/bold green]    [bold green]▒▒[/bold green]
+        [bold green]▒▒[/bold green][green]██[/green][bold green]▒▒[/bold green][green]██[/green][bold green]▒▒▒▒[/bold green]
+    [green]████▒▒▒▒▒▒▒▒[/green][dark_green]▓▓[/dark_green][green]▒▒████[/green]
+  [green]██▒▒▒▒▒▒▒▒[/green][dark_green]▓▓▓▓[/dark_green][green]▒▒▒▒▒▒▒▒██[/green]
+  [green]██▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ▒▒██[/green]
+[green]██[/green][dark_green]▓▓[/dark_green][green]▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒  ▒▒▒▒██[/green]
+[green]██[/green][dark_green]▓▓[/dark_green][green]▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒  ▒▒██[/green]
+[green]██[/green][dark_green]▓▓[/dark_green][green]▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██[/green]
+[green]██[/green][dark_green]▓▓▓▓[/dark_green][green]▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██[/green]
+  [green]██[/green][dark_green]▓▓▓▓[/dark_green][green]▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██[/green]
+  [green]██[/green][dark_green]▓▓▓▓▓▓▓▓▓▓[/dark_green][green]▒▒▒▒▒▒▒▒▒▒██[/green]
+    [green]████[/green][dark_green]▓▓▓▓▓▓▓▓▓▓▓▓[/dark_green][green]████[/green]
+        [dark_green]████████████[/dark_green]
+"""
+
 class PomodoroUI:
     def __init__(self, timer):
         self.timer = timer
@@ -96,9 +113,11 @@ class PomodoroUI:
         layout_table.add_row(header)
         layout_table.add_row("") # Whitespace
 
-        # Only show the tomato during work sessions
+        # Show tomato art - red for work, green for breaks
         if is_work:
             layout_table.add_row(Align.center(Text.from_markup(TOMATO_ART)))
+        else:
+            layout_table.add_row(Align.center(Text.from_markup(BREAK_TOMATO_ART)))
         
         layout_table.add_row(Align.center(Panel(timer_text, width=12, style=display_color)))
         layout_table.add_row("") # Small spacing before progress bar
