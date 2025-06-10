@@ -59,6 +59,10 @@ uv run pymodoro
 
 # Install globally with uv
 uv tool install git+https://github.com/emson/pymodoro.git
+# Update it with
+uv tool upgrade pymodoro
+# Uninstall
+uv tool uninstall pymodoro
 
 # Traditional pip install (if you prefer)
 pip install git+https://github.com/emson/pymodoro.git
@@ -160,7 +164,7 @@ The Pomodoro Technique is a time management method developed by Francesco Cirill
 ### Setup
 
 ```bash
-# Install uv if you haven't already
+# Install uv if you haven't already (see above)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone the repository
