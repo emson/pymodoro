@@ -17,7 +17,8 @@ Pymodoro brings the famous Pomodoro Technique to your terminal with a gorgeous i
 - 🍅 **Visual Progress** - Chunky progress bars and ASCII tomato art
 - 🔊 **Audio Notifications** - Sound alerts for session transitions
 - ⏸️ **Pause/Resume** - Full control over your timer
-- 🛡️ **Smart Confirmations** - Prevent accidental skips and quits
+- 🔄 **Session Reset** - Restart current session from the beginning when distracted
+- 🛡️ **Smart Confirmations** - Prevent accidental skips, resets, and quits
 - 📊 **Pomodoro Tracking** - Count completed work sessions
 - 🎯 **Customizable Sessions** - Configure work, short break, and long break durations
 - ⌨️ **Keyboard Controls** - Intuitive single-key commands
@@ -93,6 +94,7 @@ pymodoro --help
 |-----|--------|
 | `SPACE` | Pause/Resume current session |
 | `N` | Skip to next session (with confirmation) |
+| `R` | Reset current session to beginning (with confirmation) |
 | `Q` | Quit application (with confirmation) |
 
 ## 📖 How It Works
@@ -110,6 +112,21 @@ The interface changes colors based on your current session:
 - **Green** for short breaks  
 - **Blue** for long breaks
 - **Yellow** when paused
+
+### Session Control
+
+**Reset Functionality**: Sometimes you get distracted or interrupted during a session. Instead of continuing with less focus or skipping to the next session, you can **reset** the current session to start fresh:
+
+- **During Work Sessions**: Press `R` to restart your Pomodoro from 25 minutes (or your custom duration)
+- **During Breaks**: Press `R` to restart your break timer - perfect when you need a full break after an interruption
+- **Smart Confirmations**: Reset requires confirmation to prevent accidents, showing exactly what session and time will be reset
+- **Preserved Context**: Your Pomodoro number stays the same - you're just restarting the current session, not losing progress
+
+**When to Reset**:
+- 🔔 Got interrupted by a phone call or meeting
+- 💭 Lost focus and want a fresh start
+- ☕ Break got interrupted and you need the full rest time
+- 🎯 Want to restart with renewed concentration
 
 ## ⚙️ Configuration
 

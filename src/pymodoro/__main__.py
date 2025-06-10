@@ -16,6 +16,7 @@ def main():
 KEYBOARD CONTROLS (during runtime):
   SPACE         Pause/Resume the current session
   N             Skip to next session (with confirmation)
+  R             Reset current session to beginning (with confirmation)
   Q             Quit the application (with confirmation)
 
 ABOUT THE POMODORO TECHNIQUE:
@@ -82,7 +83,7 @@ For more information about the Pomodoro Technique:
     try:
         with TerminalKeyboard() as kb, Live(ui.get_renderable(), screen=True, redirect_stderr=False, refresh_per_second=10) as live:
             should_exit = False
-            confirmation_state = None  # None, 'skip', or 'quit'
+            confirmation_state = None  # None, 'skip', 'reset', or 'quit'
             
             while not should_exit:
                 key = kb.getch()
@@ -97,6 +98,9 @@ For more information about the Pomodoro Technique:
                                 else:
                                     play_break_end()
                                 timer.next_session(skip=True)
+                            elif confirmation_state == 'reset':
+                                # Execute reset action
+                                timer.reset()
                             elif confirmation_state == 'quit':
                                 # Execute quit action
                                 should_exit = True
@@ -109,6 +113,8 @@ For more information about the Pomodoro Technique:
                             timer.toggle_pause()
                         elif key.lower() == 'n':
                             confirmation_state = 'skip'
+                        elif key.lower() == 'r':
+                            confirmation_state = 'reset'
                         elif key.lower() == 'q':
                             confirmation_state = 'quit'
                 

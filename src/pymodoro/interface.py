@@ -127,7 +127,7 @@ class PomodoroUI:
         chunky_progress = Group(progress_bar1, progress_bar2)
         
         # Footer controls text
-        controls = Text("(space) pause | (n)ext | (q)uit", justify="center", style="dim")
+        controls = Text("(space) pause  (n)ext   (r)eset   (q)uit", justify="center", style="dim")
         
         # --- 3. Assemble Components in a Table ---
         # A borderless table is used as a layout tool for vertical stacking.
@@ -180,6 +180,14 @@ class PomodoroUI:
             else:
                 title = "Skip Break?"
                 message = "Skip current break and start next work session?"
+        elif confirmation_type == 'reset':
+            if is_work:
+                title = "Reset Work Session?"
+                message = f"Reset current work session to full duration?\nPomodoro #{self.timer.pomodoros_completed + 1} will restart from the beginning."
+            else:
+                session_name = "Short Break" if self.timer.current_session == SessionType.SHORT_BREAK else "Long Break"
+                title = f"Reset {session_name}?"
+                message = f"Reset current {session_name.lower()} to full duration?\nThe break will restart from the beginning."
         else:  # quit
             title = "Quit Pymodoro?"
             message = "Are you sure you want to quit?\nAll progress will be lost."

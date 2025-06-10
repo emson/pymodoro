@@ -1,0 +1,191 @@
+Follow these rules when writing Python code.
+
+### Best Practices for Python Coding Rules
+
+1. **Use Descriptive Variable Names**  
+   Choose meaningful names that clearly convey the purpose of the variable.  
+   ```python
+   user_age = 25  # Instead of a generic name like x or a
+   ```
+
+2. **Follow PEP 8 Style Guide**  
+   Adhere to the PEP 8 style guide for consistent code formatting, including indentation, line length, and spacing.  
+   ```python
+   def example_function(param_one, param_two):
+       return param_one + param_two
+   ```
+
+3. **Limit Line Length to 79 Characters**  
+   Break long lines to enhance readability.  
+   ```python
+   long_variable_name = "This is an example of a long string that needs to be wrapped in order to fit the line length limit."
+   ```
+
+4. **Use Docstrings for Functions and Classes**  
+   Document your code using docstrings to explain the purpose and usage.  
+   ```python
+   def add(a, b):
+       """Return the sum of a and b."""
+       return a + b
+   ```
+
+5. **Utilise Type Annotations**  
+   Specify expected types for function parameters and return values.  
+   ```python
+   def concatenate_strings(a: str, b: str) -> str:
+       return a + b
+   ```
+
+6. **Handle Exceptions Gracefully**  
+   Use try-except blocks to manage exceptions and provide meaningful error messages.  
+   ```python
+   try:
+       result = 10 / 0
+   except ZeroDivisionError:
+       print("You can't divide by zero!")
+   ```
+
+7. **Avoid Global Variables**  
+   Limit the use of global variables; prefer passing parameters to functions.  
+   ```python
+   def calculate_area(radius: float) -> float:
+       return 3.14 * radius ** 2
+   ```
+
+8. **Keep Functions Short and Focused**  
+   Aim for functions to perform a single task, making them easier to understand and test.  
+   ```python
+   def fetch_data(url: str) -> dict:
+       # Function to fetch data from a URL
+       pass
+
+   def process_data(data: dict) -> None:
+       # Function to process data
+       pass
+   ```
+
+9. **Use List Comprehensions for Simple Constructs**  
+   Utilize list comprehensions for creating lists in a concise manner.  
+   ```python
+   squares = [x ** 2 for x in range(10)]  # Generates a list of squares
+   ```
+
+10. **Employ Context Managers for Resource Management**  
+    Use `with` statements to manage file and resource handling, ensuring proper cleanup.  
+    ```python
+    with open('file.txt', 'r') as file:
+        content = file.read()
+    ```
+
+11. **Use Built-in Functions and Libraries**  
+    Leverage Python’s extensive standard library and built-in functions to reduce code duplication.  
+    ```python
+    numbers = [1, 2, 3]
+    total = sum(numbers)  # Use built-in sum function instead of manual calculation
+    ```
+
+12. **Avoid Magic Numbers**  
+    Replace magic numbers with named constants for clarity.  
+    ```python
+    MAX_CONNECTIONS = 5
+    ```
+
+13. **Keep Your Code DRY (Don’t Repeat Yourself)**  
+    Avoid code duplication by abstracting repetitive logic into functions or classes.  
+    ```python
+    def compute_discount(price: float, discount: float) -> float:
+        return price - (price * discount)
+    ```
+
+14. **Sort Imports Alphabetically and Group Them**  
+    Organize imports into standard library, third-party, and local application imports.  
+    ```python
+    import os
+    import sys
+
+    import requests
+
+    from mymodule import MyClass
+    ```
+
+15. **Write Unit Tests**  
+    Ensure your code is tested by writing unit tests for critical functions.  
+    ```python
+    import unittest
+
+    class TestMathFunctions(unittest.TestCase):
+        def test_add(self):
+            self.assertEqual(add(2, 3), 5)
+    ```
+
+16. **Use `enumerate()` Instead of `range(len())`**  
+    Use `enumerate()` for better readability when looping through a sequence.  
+    ```python
+    for index, value in enumerate(my_list):
+        print(index, value)
+    ```
+    
+1. **Use structured responses and Pydantic**
+    Use `pydantic` to created define object schemas, This example shows how to extract information from unstructured text that conforms to a schema.
+```python
+from pydantic import BaseModel
+from openai import OpenAI
+
+client = OpenAI()
+
+class CalendarEvent(BaseModel):
+    name: str
+    date: str
+    participants: list[str]
+
+completion = client.beta.chat.completions.parse(
+    model="gpt-4o-2024-08-06",
+    messages=[
+        {"role": "system", "content": "Extract the event information."},
+        {"role": "user", "content": "Alice and Bob are going to a science fair on Friday."},
+    ],
+    response_format=CalendarEvent,
+)
+
+event = completion.choices[0].message.parsed
+```
+
+We are ONLY using newer Python versions e.g. `3.13` therefore do not use `from __future__ import annotations`.
+
+
+Ensure that your Python code is clean, readable, and maintainable while adhering to best practices.
+
+## Principles
+- Always read through the code and understand the logic flows first.
+- Always aim to reduce complexity in the code.
+- Keep the code flexible, modular and maintainable.
+- Follow the "divide and conquer" principles, of breaking down complex logic into discreet and manageable concepts.
+- Write functions that do one thing well. They solve a particular logic problem and warrant a discreet function to do it.
+- Favour compound functions that are made up of smaller function calls.
+- Have a bias towards following similar patterns in the code, such as call function, get result, pass result into next function and so on.
+- Avoid `try/catch` blocks, unless really necessary. We want the application to fail fast and then add conditions to prevent it happening again.
+- Avoid nested conditions, and always seek to reduce the complexity of the function and the overall code.
+- Avoid putting complex logic in controller functions, instead call other functions or classes. This way these controller endpoints remain simple. This works well for our own API endpoints.
+- When writing tests avoid mocking, instead write tests for the functions that composite functions call, the discreet sub functions.
+- Always use typing and types throughout the code.
+- Following best practices means to follow these principles and those of respected programmers.
+- Always have a bias for writing simple flexible and reusable functions.
+- Structure the code to be simple and minimal.
+- Avoid relative paths and use absolute paths for imports.
+- Use a very simple and minimal `config.py` file for reading environment variables.
+- Always start with the minimum functionality for a feature, we can then enhance this later.
+- Structure the code such that it is easy to scale it up and make production ready later. Minimal best practice structures.
+- Create simple directory structures, with sensible modules. We can always add and refactor modules later.
+- Always add a comment at the top of the file, specifying the file path relative to the root of the project.
+- Add clear and concise documentation, that accurately describes the function. There is no need to add parameter and return information, as this can quickly get out of date and be misleading.
+- If the code logic is getting complex use standard design patterns.
+- Always aim to write predictable and repeatable code.
+- If applicable use constants.
+- Use sensible and standardized naming conventions, for files and folders. Have a bias for short descriptive names.
+- Function naming should be short, concise and informative. Favour generalizable names, as we may reuse these functions or classes.
+- Functions should not have too many parameters, if this can't be avoided then favour a Pydantic model.
+
+## Tools & Libraries
+- Always use `uv` by Astral (https://docs.astral.sh/uv/)
+- Use Pydantic for structuring dictionaries
+- Use basic minimal logging, and follow a simple but informative structure for log messages
