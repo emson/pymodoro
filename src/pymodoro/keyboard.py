@@ -8,12 +8,14 @@ class KeyboardListener:
 
     def _on_press(self, key):
         try:
-            # Handle special keys like space
+            # Handle regular character keys
             char = key.char
         except AttributeError:
-            # Handle special keys like spacebar
+            # Handle special keys
             if key == keyboard.Key.space:
                 char = ' '
+            elif hasattr(key, 'char'):  # Handle KeyCode instances
+                char = key.char
             else:
                 return
 
