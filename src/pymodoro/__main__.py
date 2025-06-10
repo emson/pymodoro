@@ -6,7 +6,7 @@ from rich.live import Live
 from .timer import PomodoroTimer, SessionType
 from .interface import PomodoroUI, console
 from .keyboard import TerminalKeyboard
-from .sound import play_work_end, play_break_end
+from .sound import play_work_end, play_break_end, play_warning
 
 def main():
     parser = argparse.ArgumentParser(
@@ -29,11 +29,14 @@ EXAMPLES:
   pymodoro -w 45                     # 45-minute work sessions
   pymodoro -w 25 -s 5 -l 30          # Custom durations for all session types
   pymodoro --work 50 --short 10      # Longer work sessions with longer short breaks
+  pymodoro -n 2                      # Warning sound 2 minutes before session end
+  pymodoro --notify 3                # Warning sound 3 minutes before session end
 
 FEATURES:
   • Beautiful terminal UI with session-aware colors
   • Visual progress bar and timer display
   • Audio notifications at session transitions
+  • Configurable warning sound before session ends
   • Confirmation dialogs for destructive actions
   • Pomodoro counter to track completed work sessions
   • Pause/resume functionality
@@ -65,6 +68,13 @@ For more information about the Pomodoro Technique:
         metavar="MINUTES",
         help="Duration of long breaks in minutes (default: 15)"
     )
+    parser.add_argument(
+        "-n", "--notify", 
+        type=int, 
+        default=1, 
+        metavar="MINUTES",
+        help="Play warning sound N minutes before session ends (default: 1)"
+    )
     
     # Add version information
     parser.add_argument(
@@ -75,7 +85,7 @@ For more information about the Pomodoro Technique:
     
     args = parser.parse_args()
 
-    timer = PomodoroTimer(args.work, args.short, args.long)
+    timer = PomodoroTimer(args.work, args.short, args.long, args.notify)
     ui = PomodoroUI(timer)
     
     timer.start() # Start the timer initially
@@ -121,6 +131,11 @@ For more information about the Pomodoro Technique:
                             confirmation_state = 'quit'
                 
                 time.sleep(0.1)
+                
+                # Check for warning before checking session change
+                if timer.should_play_warning():
+                    play_warning()
+                
                 session_changed = timer.tick()
                 if session_changed:
                     if timer.current_session == SessionType.WORK:

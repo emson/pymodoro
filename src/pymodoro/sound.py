@@ -194,3 +194,8 @@ def play_work_end() -> bool:
 def play_break_end() -> bool:
     """Play a sound to signify the end of a break session."""
     return play_notification_sound("break_end")
+
+
+def play_warning() -> bool:
+    """Play a warning sound to notify user of approaching session end."""
+    return play_notification_sound("default")

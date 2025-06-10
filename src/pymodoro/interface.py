@@ -82,11 +82,11 @@ class PomodoroUI:
         if is_work:
             primary_color = "red"
             status_icon = "🍅"
-            status_text = f"Work {status_icon} | Pomodoro #{self.timer.pomodoros_completed + 1}"
+            status_text = f"{status_icon} Pomodoro #{self.timer.pomodoros_completed + 1}"
         else: # It's a break
             primary_color = "green" if self.timer.current_session == SessionType.SHORT_BREAK else "blue"
             status_icon = "☕" if self.timer.current_session == SessionType.SHORT_BREAK else "🛋️"
-            status_text = f"Break {status_icon}"
+            status_text = f"{status_icon} Break"
 
         # Override colors and add text for paused state
         display_color = "yellow" if is_paused else primary_color
