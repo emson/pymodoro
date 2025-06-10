@@ -64,6 +64,30 @@ PAUSE_TOMATO_ART = """
 class PomodoroUI:
     def __init__(self, timer):
         self.timer = timer
+        self._last_session = None
+        self._cached_art = None
+        self._last_header_state = None
+        self._cached_header = None
+
+    def _get_session_colors(self) -> tuple[str, str, str]:
+        """
+        Get consistent colors for the current session state.
+        Returns: (primary_color, display_color, icon)
+        """
+        is_work = self.timer.current_session == SessionType.WORK
+        is_paused = not self.timer.is_running
+        
+        if is_work:
+            primary_color = "red"
+            icon = "🍅"
+        else: # It's a break
+            primary_color = "green" if self.timer.current_session == SessionType.SHORT_BREAK else "blue"
+            icon = "☕" if self.timer.current_session == SessionType.SHORT_BREAK else "🛋️"
+        
+        # Both header and display should use the same color logic
+        display_color = "yellow" if is_paused else primary_color
+        
+        return primary_color, display_color, icon
 
     def get_renderable(self, confirmation_type=None):
         """
@@ -79,27 +103,31 @@ class PomodoroUI:
                 return self._render_confirmation(confirmation_type)
         
         # --- 1. Determine Session State and Colors ---
+        primary_color, display_color, status_icon = self._get_session_colors()
         is_work = self.timer.current_session == SessionType.WORK
         is_paused = not self.timer.is_running
         
-        if is_work:
-            primary_color = "red"
-            status_icon = "🍅"
-            status_text = f"{status_icon} Pomodoro #{self.timer.pomodoros_completed + 1}"
-        else: # It's a break
-            primary_color = "green" if self.timer.current_session == SessionType.SHORT_BREAK else "blue"
-            status_icon = "☕" if self.timer.current_session == SessionType.SHORT_BREAK else "🛋️"
-            status_text = f"{status_icon} Break"
-
-        # Override colors and add text for paused state
-        display_color = "yellow" if is_paused else primary_color
-        if is_paused:
-            status_text += " | [bold yellow]PAUSED[/bold yellow]"
-
         # --- 2. Create UI Components ---
         
-        # Header text (e.g., "Work 🍅 | Pomodoro #1 | PAUSED")
-        header = Text.from_markup(status_text, justify="center", style=f"bold {primary_color}")
+        # Cache header text to prevent flicker and improve performance
+        header_state = (self.timer.current_session, self.timer.pomodoros_completed, is_paused, display_color)
+        if self._last_header_state != header_state:
+            # Build header text with explicit styling to avoid markup conflicts
+            header = Text(justify="center")
+            if is_work:
+                header.append(f"{status_icon} Pomodoro #{self.timer.pomodoros_completed + 1}", style=f"bold {display_color}")
+            else: # It's a break
+                header.append(f"{status_icon} Break", style=f"bold {display_color}")
+            
+            # Add paused text with explicit styling
+            if is_paused:
+                header.append(" | ", style=f"bold {display_color}")
+                header.append("PAUSED", style="bold yellow")
+            
+            self._cached_header = header
+            self._last_header_state = header_state
+        else:
+            header = self._cached_header
 
         # The main timer display (e.g., "24:59") - yellow when paused
         mins, secs = divmod(int(self.timer.time_left), 60)
@@ -138,13 +166,18 @@ class PomodoroUI:
         layout_table.add_row(header)
         layout_table.add_row("") # Whitespace
 
-        # Show tomato art - yellow for paused, red for work, green for breaks
-        if is_paused:
-            layout_table.add_row(Align.center(Text.from_markup(PAUSE_TOMATO_ART)))
-        elif is_work:
-            layout_table.add_row(Align.center(Text.from_markup(TOMATO_ART)))
-        else:
-            layout_table.add_row(Align.center(Text.from_markup(BREAK_TOMATO_ART)))
+        # Show tomato art - cache to reduce markup parsing
+        current_session_key = (self.timer.current_session, is_paused)
+        if self._last_session != current_session_key:
+            if is_paused:
+                self._cached_art = Align.center(Text.from_markup(PAUSE_TOMATO_ART))
+            elif is_work:
+                self._cached_art = Align.center(Text.from_markup(TOMATO_ART))
+            else:
+                self._cached_art = Align.center(Text.from_markup(BREAK_TOMATO_ART))
+            self._last_session = current_session_key
+        
+        layout_table.add_row(self._cached_art)
         
         layout_table.add_row(Align.center(Panel(timer_text, width=12, style=display_color)))
         layout_table.add_row("") # Small spacing before progress bar
@@ -162,18 +195,10 @@ class PomodoroUI:
         """
         Renders a clean help screen with keyboard shortcuts
         """
-        # Determine colors based on current session
+        # Use consistent colors
+        primary_color, border_color, status_icon = self._get_session_colors()
         is_work = self.timer.current_session == SessionType.WORK
         is_paused = not self.timer.is_running
-        
-        if is_work:
-            border_color = "red"
-        else:
-            border_color = "green" if self.timer.current_session == SessionType.SHORT_BREAK else "blue"
-        
-        # Override with yellow if paused
-        if is_paused:
-            border_color = "yellow"
         
         # Create help table with keyboard shortcuts
         help_table = Table(show_header=False, box=None, padding=(0, 2))
@@ -236,18 +261,10 @@ class PomodoroUI:
         """
         Renders a full-screen confirmation dialog
         """
-        # Determine colors based on current session
+        # Use consistent colors
+        primary_color, border_color, status_icon = self._get_session_colors()
         is_work = self.timer.current_session == SessionType.WORK
         is_paused = not self.timer.is_running
-        
-        if is_work:
-            border_color = "red"
-        else:
-            border_color = "green" if self.timer.current_session == SessionType.SHORT_BREAK else "blue"
-        
-        # Override with yellow if paused
-        if is_paused:
-            border_color = "yellow"
         
         # Create confirmation content based on type
         if confirmation_type == 'skip':
@@ -283,7 +300,7 @@ class PomodoroUI:
         title_text = Text(title, style=f"bold {border_color}", justify="center")
         context_text = Text(context, style="dim", justify="center")
         message_text = Text(message, style="white", justify="center")
-        options_text = Text("Y - Yes    N - No    SPACE - Cancel", style="bold white", justify="center")
+        options_text = Text("Y - Yes    N - No    SPACE/ESC - Cancel", style="bold white", justify="center")
         
         from rich.console import Group
         confirmation_content = Group(

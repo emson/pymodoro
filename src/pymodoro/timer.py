@@ -8,7 +8,7 @@ class SessionType(Enum):
     LONG_BREAK = auto()
 
 class PomodoroTimer:
-    def __init__(self, work_mins=25, short_break_mins=5, long_break_mins=15, warning_mins=1):
+    def __init__(self, work_mins=25, short_break_mins=5, long_break_mins=15, warning_mins=1, long_break_frequency=4):
         self.settings = {
             SessionType.WORK: work_mins * 60,
             SessionType.SHORT_BREAK: short_break_mins * 60,
@@ -21,6 +21,7 @@ class PomodoroTimer:
         self.start_time = None
         self._last_tick_time = None
         self.warning_minutes = warning_mins
+        self.long_break_frequency = long_break_frequency  # How many work sessions before long break
         self._warning_played = False  # Track if warning has been played for current session
 
     def start(self):
@@ -81,7 +82,7 @@ class PomodoroTimer:
     def next_session(self, skip=False):
         if self.current_session == SessionType.WORK:
             self.pomodoros_completed += 1
-            if self.pomodoros_completed % 4 == 0:
+            if self.pomodoros_completed % self.long_break_frequency == 0:
                 self.current_session = SessionType.LONG_BREAK
             else:
                 self.current_session = SessionType.SHORT_BREAK
