@@ -24,6 +24,19 @@ Pymodoro brings the famous Pomodoro Technique to your terminal with a gorgeous i
 
 ## 🚀 Quick Start
 
+### Install uv (if you don't have it)
+
+```bash
+# macOS and Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Or with pip
+pip install uv
+```
+
 ### Why uvx?
 
 **Try before you install!** With `uvx`, you can run Pymodoro instantly without any installation or setup. Perfect for:
