@@ -8,6 +8,9 @@
 
 Pymodoro brings the famous Pomodoro Technique to your terminal with a gorgeous interface, session-aware colors, chunky progress bars, and delightful ASCII art. Stay focused, take breaks, and boost your productivity—all from the comfort of your command line.
 
+![Pymodoro Screenshot](assets/pymodoro-screenshot-01.png)
+
+
 ## ✨ Features
 
 - 🎨 **Beautiful TUI** - Rich terminal interface with session-aware colors
