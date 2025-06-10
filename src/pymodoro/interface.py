@@ -58,14 +58,29 @@ class PomodoroUI:
         time_display_str = f"{mins:02d}:{secs:02d}"
         timer_text = Text(time_display_str, justify="center", style="bold white on black")
         
-        # The progress bar
-        progress = Progress(
-            BarColumn(bar_width=None, complete_style=primary_color, finished_style="green"),
-            expand=True
-        )
+        # Create a beautiful chunky progress bar using custom Text
         total_time = self.timer.settings[self.timer.current_session]
-        progress.add_task("progress", total=total_time, completed=total_time - self.timer.time_left)
-
+        remaining = max(0, self.timer.time_left)
+        completed = total_time - remaining
+        
+        # Calculate progress percentage
+        progress_ratio = completed / total_time if total_time > 0 else 0
+        bar_width = 40
+        filled_width = int(progress_ratio * bar_width)
+        empty_width = bar_width - filled_width
+        
+        # Create chunky progress bar with block characters
+        filled_blocks = "█" * filled_width
+        empty_blocks = "░" * empty_width
+        
+        # Create two identical rows for extra chunkiness
+        progress_bar1 = Text(filled_blocks + empty_blocks, style=f"bold {primary_color}")
+        progress_bar2 = Text(filled_blocks + empty_blocks, style=f"bold {primary_color}")
+        
+        # Stack the bars for thickness
+        from rich.console import Group
+        chunky_progress = Group(progress_bar1, progress_bar2)
+        
         # Footer controls text
         controls = Text("SPACE: Pause/Resume | N: Skip | Q: Quit", justify="center", style="dim")
         
@@ -80,7 +95,8 @@ class PomodoroUI:
             layout_table.add_row(Align.center(Text.from_markup(TOMATO_ART)))
         
         layout_table.add_row(Align.center(Panel(timer_text, width=12, style=primary_color)))
-        layout_table.add_row(Align.center(progress, vertical="middle"))
+        layout_table.add_row("") # Small spacing before progress bar
+        layout_table.add_row(Align.center(chunky_progress))
         
         # Use a flexible amount of whitespace to push controls to the bottom
         layout_table.add_row("")
