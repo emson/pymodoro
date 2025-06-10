@@ -38,6 +38,7 @@ class PomodoroUI:
         """
         # --- 1. Determine Session State and Colors ---
         is_work = self.timer.current_session == SessionType.WORK
+        is_paused = not self.timer.is_running
         
         if is_work:
             primary_color = "red"
@@ -48,12 +49,17 @@ class PomodoroUI:
             status_icon = "☕" if self.timer.current_session == SessionType.SHORT_BREAK else "🛋️"
             status_text = f"Break {status_icon}"
 
+        # Override colors and add text for paused state
+        display_color = "yellow" if is_paused else primary_color
+        if is_paused:
+            status_text += " | [bold yellow]PAUSED[/bold yellow]"
+
         # --- 2. Create UI Components ---
         
-        # Header text (e.g., "Work 🍅 | Pomodoro #1")
-        header = Text(status_text, justify="center", style=f"bold {primary_color}")
+        # Header text (e.g., "Work 🍅 | Pomodoro #1 | PAUSED")
+        header = Text.from_markup(status_text, justify="center", style=f"bold {primary_color}")
 
-        # The main timer display (e.g., "24:59")
+        # The main timer display (e.g., "24:59") - yellow when paused
         mins, secs = divmod(int(self.timer.time_left), 60)
         time_display_str = f"{mins:02d}:{secs:02d}"
         timer_text = Text(time_display_str, justify="center", style="bold white on black")
@@ -69,13 +75,13 @@ class PomodoroUI:
         filled_width = int(progress_ratio * bar_width)
         empty_width = bar_width - filled_width
         
-        # Create chunky progress bar with block characters
+        # Create chunky progress bar with block characters - yellow when paused
         filled_blocks = "█" * filled_width
         empty_blocks = "░" * empty_width
         
         # Create two identical rows for extra chunkiness
-        progress_bar1 = Text(filled_blocks + empty_blocks, style=f"bold {primary_color}")
-        progress_bar2 = Text(filled_blocks + empty_blocks, style=f"bold {primary_color}")
+        progress_bar1 = Text(filled_blocks + empty_blocks, style=f"bold {display_color}")
+        progress_bar2 = Text(filled_blocks + empty_blocks, style=f"bold {display_color}")
         
         # Stack the bars for thickness
         from rich.console import Group
@@ -94,7 +100,7 @@ class PomodoroUI:
         if is_work:
             layout_table.add_row(Align.center(Text.from_markup(TOMATO_ART)))
         
-        layout_table.add_row(Align.center(Panel(timer_text, width=12, style=primary_color)))
+        layout_table.add_row(Align.center(Panel(timer_text, width=12, style=display_color)))
         layout_table.add_row("") # Small spacing before progress bar
         layout_table.add_row(Align.center(chunky_progress))
         
