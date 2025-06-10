@@ -3,6 +3,7 @@ import os
 import platform
 import subprocess
 import sys
+import threading
 from pathlib import Path
 from typing import Optional, Dict, List
 
@@ -133,9 +134,9 @@ def _play_terminal_bell() -> bool:
     return True
 
 
-def play_notification_sound(sound_type: str = "default") -> bool:
+def _play_notification_sound_sync(sound_type: str = "default") -> bool:
     """
-    Play a notification sound with multiple fallback options.
+    Play a notification sound synchronously with multiple fallback options.
     
     Args:
         sound_type: Type of sound to play ('work_end', 'break_end', or 'default')
@@ -164,6 +165,25 @@ def play_notification_sound(sound_type: str = "default") -> bool:
     
     # Fall back to terminal bell as absolute last resort
     return _play_terminal_bell()
+
+
+def play_notification_sound(sound_type: str = "default") -> bool:
+    """
+    Play a notification sound asynchronously to avoid blocking the UI.
+    
+    Args:
+        sound_type: Type of sound to play ('work_end', 'break_end', or 'default')
+    
+    Returns:
+        True (since we're playing asynchronously, we assume success)
+    """
+    def _play_async():
+        _play_notification_sound_sync(sound_type)
+    
+    # Play sound in background thread to avoid blocking UI
+    sound_thread = threading.Thread(target=_play_async, daemon=True)
+    sound_thread.start()
+    return True
 
 
 def play_work_end() -> bool:

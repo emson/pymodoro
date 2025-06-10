@@ -92,12 +92,14 @@ For more information about the Pomodoro Technique:
                         # Handle confirmation responses
                         if key.lower() == 'y':
                             if confirmation_state == 'skip':
-                                # Execute skip action
-                                if timer.current_session == SessionType.WORK:
+                                # Execute skip action - update timer first, then play sound
+                                current_session_type = timer.current_session
+                                timer.next_session(skip=True)
+                                # Play sound asynchronously after state change
+                                if current_session_type == SessionType.WORK:
                                     play_work_end()
                                 else:
                                     play_break_end()
-                                timer.next_session(skip=True)
                             elif confirmation_state == 'reset':
                                 # Execute reset action
                                 timer.reset()
