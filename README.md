@@ -33,27 +33,27 @@ Pymodoro brings the famous Pomodoro Technique to your terminal with a gorgeous i
 
 ```bash
 # Run directly with uvx (no installation needed!)
-uvx --from git+https://github.com/yourusername/pymodoro.git pymodoro
+uvx --from git+https://github.com/emson/pymodoro.git pymodoro
 
 # Or install from source with uv (recommended for development)
-git clone https://github.com/yourusername/pymodoro.git
+git clone https://github.com/emson/pymodoro.git
 cd pymodoro
 uv sync
 uv run pymodoro
 
 # Install globally with uv
-uv tool install git+https://github.com/yourusername/pymodoro.git
+uv tool install git+https://github.com/emson/pymodoro.git
 
 # Traditional pip install (if you prefer)
-pip install git+https://github.com/yourusername/pymodoro.git
+pip install git+https://github.com/emson/pymodoro.git
 ```
 
 ### Usage
 
 ```bash
 # If using uvx (run without installing)
-uvx --from git+https://github.com/yourusername/pymodoro.git pymodoro
-uvx --from git+https://github.com/yourusername/pymodoro.git pymodoro -w 45 -s 10
+uvx --from git+https://github.com/emson/pymodoro.git pymodoro
+uvx --from git+https://github.com/emson/pymodoro.git pymodoro -w 45 -s 10
 
 # If installed globally
 pymodoro
@@ -110,7 +110,7 @@ Options:
 
 ```bash
 # Focus mode - longer work sessions (using uvx)
-uvx --from git+https://github.com/yourusername/pymodoro.git pymodoro -w 50 -s 10
+uvx --from git+https://github.com/emson/pymodoro.git pymodoro -w 50 -s 10
 
 # Quick sprints - shorter work sessions (if installed)
 pymodoro -w 15 -s 5
@@ -148,7 +148,7 @@ The Pomodoro Technique is a time management method developed by Francesco Cirill
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone the repository
-git clone https://github.com/yourusername/pymodoro.git
+git clone https://github.com/emson/pymodoro.git
 cd pymodoro
 
 # Sync dependencies and create virtual environment
@@ -223,13 +223,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Francesco Cirillo** - Creator of the Pomodoro Technique
 - **[Rich](https://github.com/Textualize/rich)** - For the beautiful terminal UI framework
 - **The Python Community** - For the amazing ecosystem
+- **[Pomopy](https://github.com/sophiezhng/pomopy)** - for inspiration and ASCII art
 
 ## 🔗 Links
 
 - [Pomodoro Technique Official Website](https://francescocirillo.com/pages/pomodoro-technique)
 - [Rich Documentation](https://rich.readthedocs.io/)
-- [Report Issues](https://github.com/yourusername/pymodoro/issues)
+- [Report Issues](https://github.com/emson/pymodoro/issues)
 
 ---
 
-Made with ❤️ and lots of 🍅 by [Your Name](https://github.com/yourusername)
+Made with ❤️ and lots of 🍅 by [Ben Emson](https://github.com/emson)
