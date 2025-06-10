@@ -1,85 +1,90 @@
 # src/pymodoro/interface.py
+from rich.align import Align
 from rich.console import Console
-from rich.layout import Layout
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn
+from rich.table import Table
 from rich.text import Text
 from .timer import SessionType
 
 console = Console()
 
-def get_session_style(session_type: SessionType):
-    if session_type == SessionType.WORK:
-        return "bold white on red", "Work 🍅"
-    elif session_type == SessionType.SHORT_BREAK:
-        return "bold white on green", "Short Break ☕"
-    return "bold white on blue", "Long Break 🛋️"
-
+# The animation is removed. We now have a single, static piece of art.
+TOMATO_ART = """
+             [bold green]▒▒[/bold green]
+      [bold green]▒▒[/bold green]     [bold green]▒▒[/bold green]    [bold green]▒▒[/bold green]
+        [bold green]▒▒[/bold green][red]██[/red][bold green]▒▒[/bold green][red]██[/red][bold green]▒▒▒▒[/bold green]
+    [red]████▒▒▒▒▒▒▒▒[/red][dark_orange]▓▓[/dark_orange][red]▒▒████[/red]
+  [red]██▒▒▒▒▒▒▒▒[/red][dark_orange]▓▓▓▓[/dark_orange][red]▒▒▒▒▒▒▒▒██[/red]
+  [red]██▒▒▒▒▒▒▒▒▒▒▒▒▒▒    ▒▒██[/red]
+[red]██[/red][dark_orange]▓▓[/dark_orange][red]▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒  ▒▒▒▒██[/red]
+[red]██[/red][dark_orange]▓▓[/dark_orange][red]▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒  ▒▒██[/red]
+[red]██[/red][dark_orange]▓▓[/dark_orange][red]▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██[/red]
+[red]██[/red][dark_orange]▓▓▓▓[/dark_orange][red]▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██[/red]
+  [red]██[/red][dark_orange]▓▓▓▓[/dark_orange][red]▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██[/red]
+  [red]██[/red][dark_orange]▓▓▓▓▓▓▓▓▓▓[/dark_orange][red]▒▒▒▒▒▒▒▒▒▒██[/red]
+    [red]████[/red][dark_orange]▓▓▓▓▓▓▓▓▓▓▓▓[/dark_orange][red]████[/red]
+        [dark_orange]████████████[/dark_orange]
+"""
 
 class PomodoroUI:
     def __init__(self, timer):
         self.timer = timer
-        self.layout = self._create_layout()
 
-    def _create_layout(self) -> Layout:
-        layout = Layout(name="root")
-        layout.split(
-            Layout(name="header", size=3),
-            Layout(ratio=1, name="main"),
-            Layout(size=3, name="footer"),
-        )
-        layout["main"].split_row(Layout(name="side"), Layout(name="body", ratio=2))
-        return layout
-
-    def _create_header(self) -> Panel:
-        title = Text("PyModoro - A Pomodoro Timer", justify="center", style="bold magenta")
-        return Panel(title, border_style="magenta")
-
-    def _create_footer(self) -> Panel:
-        controls = Text(
-            "SPACE: Pause/Resume | N: Skip Session | Q: Quit",
-            justify="center",
-            style="bold yellow",
-        )
-        return Panel(controls, border_style="yellow")
-
-    def _create_status_panel(self) -> Panel:
-        style, session_name = get_session_style(self.timer.current_session)
+    def get_renderable(self):
+        """
+        Builds the entire UI renderable from scratch on each update.
+        This uses a borderless Table to vertically stack and center components.
+        """
+        # --- 1. Determine Session State and Colors ---
+        is_work = self.timer.current_session == SessionType.WORK
         
-        status_text = Text(justify="center")
-        status_text.append(f"{session_name}\n\n", style=style)
-        status_text.append(f"Pomodoros Done: {self.timer.pomodoros_completed}\n")
+        if is_work:
+            primary_color = "red"
+            status_icon = "🍅"
+            status_text = f"Work {status_icon} | Pomodoro #{self.timer.pomodoros_completed + 1}"
+        else: # It's a break
+            primary_color = "green" if self.timer.current_session == SessionType.SHORT_BREAK else "blue"
+            status_icon = "☕" if self.timer.current_session == SessionType.SHORT_BREAK else "🛋️"
+            status_text = f"Break {status_icon}"
+
+        # --- 2. Create UI Components ---
         
-        status = "Paused" if not self.timer.is_running else "Running"
-        status_style = "yellow" if not self.timer.is_running else "cyan"
-        status_text.append(f"Status: ", style="bold")
-        status_text.append(f"{status}", style=status_style)
+        # Header text (e.g., "Work 🍅 | Pomodoro #1")
+        header = Text(status_text, justify="center", style=f"bold {primary_color}")
 
-        return Panel(status_text, title="[bold]Status[/bold]", border_style="cyan")
-
-    def _create_timer_panel(self) -> Panel:
+        # The main timer display (e.g., "24:59")
+        mins, secs = divmod(int(self.timer.time_left), 60)
+        time_display_str = f"{mins:02d}:{secs:02d}"
+        timer_text = Text(time_display_str, justify="center", style="bold white on black")
+        
+        # The progress bar
         progress = Progress(
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(bar_width=None, complete_style="bold white", finished_style="green"),
-            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            BarColumn(bar_width=None, complete_style=primary_color, finished_style="green"),
             expand=True
         )
-        
         total_time = self.timer.settings[self.timer.current_session]
-        remaining = max(0, self.timer.time_left)
-        completed = total_time - remaining
-        
-        mins, secs = divmod(int(remaining), 60)
-        time_str = f"{mins:02d}:{secs:02d}"
-        
-        style, session_name = get_session_style(self.timer.current_session)
-        progress.add_task(f"[bold]{time_str}[/bold]", total=total_time, completed=completed)
+        progress.add_task("progress", total=total_time, completed=total_time - self.timer.time_left)
 
-        return Panel(progress, title=f"[bold]{session_name} Timer[/bold]", border_style=style.split(" on ")[1])
+        # Footer controls text
+        controls = Text("SPACE: Pause/Resume | N: Skip | Q: Quit", justify="center", style="dim")
+        
+        # --- 3. Assemble Components in a Table ---
+        # A borderless table is used as a layout tool for vertical stacking.
+        layout_table = Table.grid(expand=True)
+        layout_table.add_row(header)
+        layout_table.add_row("") # Whitespace
 
-    def get_renderable(self) -> Layout:
-        self.layout["header"].update(self._create_header())
-        self.layout["footer"].update(self._create_footer())
-        self.layout["side"].update(self._create_status_panel())
-        self.layout["body"].update(self._create_timer_panel())
-        return self.layout
+        # Only show the tomato during work sessions
+        if is_work:
+            layout_table.add_row(Align.center(Text.from_markup(TOMATO_ART)))
+        
+        layout_table.add_row(Align.center(Panel(timer_text, width=12, style=primary_color)))
+        layout_table.add_row(Align.center(progress, vertical="middle"))
+        
+        # Use a flexible amount of whitespace to push controls to the bottom
+        layout_table.add_row("")
+        layout_table.add_row(controls)
+
+        # The final renderable is aligned in the center of the screen
+        return Align.center(layout_table, vertical="middle")
