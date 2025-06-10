@@ -5,28 +5,10 @@ from rich.live import Live
 
 from .timer import PomodoroTimer, SessionType
 from .interface import PomodoroUI, console
-from .keyboard import KeyboardListener
+from .keyboard import TerminalKeyboard
 from .sound import play_work_end, play_break_end
 
-# Global flag to signal exit
-should_exit = False
-
-def handle_key_press(key):
-    global timer, should_exit
-    if key == ' ':
-        timer.toggle_pause()
-    elif key.lower() == 'n':
-        if timer.current_session == SessionType.WORK:
-            play_work_end()
-        else:
-            play_break_end()
-        timer.next_session(skip=True)
-    elif key.lower() == 'q':
-        should_exit = True
-
 def main():
-    global timer # Make timer accessible to the key handler
-
     parser = argparse.ArgumentParser(description="A beautiful command-line pomodoro timer.")
     parser.add_argument("-w", "--work", type=int, default=25, help="Work session duration in minutes.")
     parser.add_argument("-s", "--short", type=int, default=5, help="Short break duration in minutes.")
@@ -36,14 +18,25 @@ def main():
     timer = PomodoroTimer(args.work, args.short, args.long)
     ui = PomodoroUI(timer)
     
-    kb_listener = KeyboardListener(handle_key_press)
-    kb_listener.start()
-
     timer.start() # Start the timer initially
 
     try:
-        with Live(ui.get_renderable(), screen=True, redirect_stderr=False, refresh_per_second=10) as live:
+        with TerminalKeyboard() as kb, Live(ui.get_renderable(), screen=True, redirect_stderr=False, refresh_per_second=10) as live:
+            should_exit = False
             while not should_exit:
+                key = kb.getch()
+                if key:
+                    if key == ' ':
+                        timer.toggle_pause()
+                    elif key.lower() == 'n':
+                        if timer.current_session == SessionType.WORK:
+                            play_work_end()
+                        else:
+                            play_break_end()
+                        timer.next_session(skip=True)
+                    elif key.lower() == 'q':
+                        should_exit = True
+                
                 time.sleep(0.1)
                 session_changed = timer.tick()
                 if session_changed:
@@ -54,7 +47,6 @@ def main():
                 
                 live.update(ui.get_renderable())
     finally:
-        kb_listener.stop()
         console.print("[bold red]Pymodoro finished. Great work![/bold red]")
 
 if __name__ == "__main__":

@@ -1,28 +1,29 @@
 # src/pymodoro/keyboard.py
-from pynput import keyboard
+import sys
+import termios
+import tty
+import select
 
-class KeyboardListener:
-    def __init__(self, on_press_callback):
-        self.on_press_callback = on_press_callback
-        self.listener = keyboard.Listener(on_press=self._on_press)
+class TerminalKeyboard:
+    def __init__(self):
+        self._original_settings = None
 
-    def _on_press(self, key):
-        try:
-            # Handle regular character keys
-            char = key.char
-        except AttributeError:
-            # Handle special keys
-            if key == keyboard.Key.space:
-                char = ' '
-            elif hasattr(key, 'char'):  # Handle KeyCode instances
-                char = key.char
-            else:
-                return
-
-        self.on_press_callback(char)
-    
     def start(self):
-        self.listener.start()
+        self._original_settings = termios.tcgetattr(sys.stdin)
+        tty.setcbreak(sys.stdin.fileno())
 
     def stop(self):
-        self.listener.stop()
+        if self._original_settings:
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self._original_settings)
+
+    def getch(self):
+        if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
+            return sys.stdin.read(1)
+        return None
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
