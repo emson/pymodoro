@@ -149,7 +149,7 @@ For more information about the Pomodoro Technique:
                 else:
                     live.update(ui.get_renderable())
     finally:
-        console.print("[bold red]Pymodoro finished. Great work![/bold red]")
+        console.print("[bold green]🍅 Pymodoro finished. Great work![/bold green]")
 
 if __name__ == "__main__":
     main()
