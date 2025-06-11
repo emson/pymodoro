@@ -7,6 +7,7 @@ from .timer import PomodoroTimer, SessionType
 from .interface import PomodoroUI, console
 from .keyboard import TerminalKeyboard
 from .sound import play_work_end, play_break_end, play_warning
+from .storage import load_or_initialize_day_log, add_session, reset_today_log, open_log_in_editor
 
 def main():
     parser = argparse.ArgumentParser(
@@ -95,13 +96,40 @@ For more information about the Pomodoro Technique:
         version="Pymodoro 0.1.0"
     )
     
+    # Log management options
+    parser.add_argument(
+        "--reset_log",
+        action="store_true",
+        help="Reset today's session log to empty and exit"
+    )
+    parser.add_argument(
+        "--open_log",
+        action="store_true", 
+        help="Open today's session log in default editor and exit"
+    )
+    
     args = parser.parse_args()
+
+    # Handle log management actions (exit immediately after execution)
+    if args.reset_log:
+        reset_today_log()
+        console.print("[green]✓[/green] Today's session log has been reset to empty")
+        return
+    
+    if args.open_log:
+        open_log_in_editor()
+        console.print("[green]✓[/green] Opening today's session log in default editor")
+        return
 
     # Validate frequency parameter
     if args.frequency < 1:
         parser.error("Long break frequency must be at least 1")
 
+    # Load existing session data
+    day_log = load_or_initialize_day_log()
+    
     timer = PomodoroTimer(args.work, args.short, args.long, args.notify, args.frequency)
+    timer.pomodoros_completed = day_log.session_count
     ui = PomodoroUI(timer)
     
     timer.start() # Start the timer initially
@@ -142,6 +170,9 @@ For more information about the Pomodoro Technique:
                                 if confirmation_state == 'skip':
                                     # Execute skip action - update timer first, then play sound
                                     current_session_type = timer.current_session
+                                    # If skipping a work session, save it first
+                                    if current_session_type == SessionType.WORK:
+                                        add_session(timer.settings[SessionType.WORK] // 60)
                                     timer.next_session(skip=True)
                                     # Play sound asynchronously after state change
                                     if current_session_type == SessionType.WORK:
@@ -181,6 +212,8 @@ For more information about the Pomodoro Technique:
                     if timer.current_session == SessionType.WORK:
                         play_break_end() # Sound for break ending
                     else:
+                        # Work session completed - save it and play sound
+                        add_session(timer.settings[SessionType.WORK] // 60)
                         play_work_end() # Sound for work ending
                 
                 # Update display with a freshly generated renderable
