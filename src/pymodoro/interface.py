@@ -18,12 +18,14 @@ class PomodoroUI:
         total_time = self.timer.settings[session_type]
         pomodoros_completed = self.timer.pomodoros_completed
         is_paused = not self.timer.is_running
+        is_muted = self.timer.is_muted
         
         # Create cache key based on meaningful state
         cache_key = (
             session_type,
             pomodoros_completed,
             is_paused,
+            is_muted,
             int(time_left),  # Round to seconds
             confirmation_type
         )
@@ -39,7 +41,8 @@ class PomodoroUI:
                 session_type=session_type,
                 time_left=time_left,
                 pomodoros_completed=pomodoros_completed,
-                is_paused=is_paused
+                is_paused=is_paused,
+                is_muted=is_muted
             )
         else:
             screen = self.screen_manager.get_screen(
@@ -48,7 +51,8 @@ class PomodoroUI:
                 time_left=time_left,
                 total_time=total_time,
                 pomodoros_completed=pomodoros_completed,
-                is_paused=is_paused
+                is_paused=is_paused,
+                is_muted=is_muted
             )
         
         # Cache the result

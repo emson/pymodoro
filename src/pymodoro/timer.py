@@ -8,7 +8,7 @@ class SessionType(Enum):
     LONG_BREAK = auto()
 
 class PomodoroTimer:
-    def __init__(self, work_mins=25, short_break_mins=5, long_break_mins=15, warning_mins=1, long_break_frequency=4):
+    def __init__(self, work_mins=25, short_break_mins=5, long_break_mins=15, warning_mins=1, long_break_frequency=4, mute=False):
         self.settings = {
             SessionType.WORK: work_mins * 60,
             SessionType.SHORT_BREAK: short_break_mins * 60,
@@ -23,6 +23,7 @@ class PomodoroTimer:
         self.warning_minutes = warning_mins
         self.long_break_frequency = long_break_frequency  # How many work sessions before long break
         self._warning_played = False  # Track if warning has been played for current session
+        self.is_muted = mute  # Mute state for sound notifications
 
     def start(self):
         if not self.is_running:
@@ -47,6 +48,10 @@ class PomodoroTimer:
             self.pause()
         else:
             self.resume()
+    
+    def toggle_mute(self):
+        """Toggle mute state for sound notifications."""
+        self.is_muted = not self.is_muted
     
     def reset(self):
         """Reset the current session timer to its full duration."""

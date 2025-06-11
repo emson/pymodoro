@@ -18,6 +18,7 @@ KEYBOARD CONTROLS (during runtime):
   SPACE         Pause/Resume the current session
   n             Skip to next session (with confirmation)
   r             Reset current session to beginning (with confirmation)
+  m             Toggle mute/unmute sounds
   q             Quit the application (with confirmation)
   h             Show help screen
 
@@ -36,6 +37,8 @@ EXAMPLES:
   pymodoro -f 2                      # Long break after every 2 work sessions
   pymodoro --frequency 6             # Long break after every 6 work sessions
   pymodoro -w 30 -f 3                # 30-minute work sessions, long break every 3 sessions
+  pymodoro --mute                    # Start with sounds muted
+  pymodoro -m -w 45                  # 45-minute work sessions with sounds muted
 
 FEATURES:
   • Beautiful terminal UI with session-aware colors
@@ -88,6 +91,11 @@ For more information about the Pomodoro Technique:
         metavar="COUNT",
         help="Number of work sessions before a long break (default: 4)"
     )
+    parser.add_argument(
+        "-m", "--mute", 
+        action="store_true",
+        help="Mute all sound notifications"
+    )
     
     # Add version information
     parser.add_argument(
@@ -128,7 +136,7 @@ For more information about the Pomodoro Technique:
     # Load existing session data
     day_log = load_or_initialize_day_log()
     
-    timer = PomodoroTimer(args.work, args.short, args.long, args.notify, args.frequency)
+    timer = PomodoroTimer(args.work, args.short, args.long, args.notify, args.frequency, args.mute)
     timer.pomodoros_completed = day_log.session_count
     ui = PomodoroUI(timer)
     
@@ -161,6 +169,10 @@ For more information about the Pomodoro Technique:
                             elif key.lower() == 'q':
                                 # Q should work normally (quit) even from help
                                 confirmation_state = 'quit'
+                            elif key.lower() == 'm':
+                                # M should work normally (mute) even from help
+                                timer.toggle_mute()
+                                confirmation_state = None
                             else:
                                 # Any other key dismisses help
                                 confirmation_state = None
@@ -176,9 +188,9 @@ For more information about the Pomodoro Technique:
                                     timer.next_session(skip=True)
                                     # Play sound asynchronously after state change
                                     if current_session_type == SessionType.WORK:
-                                        play_work_end()
+                                        play_work_end(timer.is_muted)
                                     else:
-                                        play_break_end()
+                                        play_break_end(timer.is_muted)
                                 elif confirmation_state == 'reset':
                                     # Execute reset action
                                     timer.reset()
@@ -200,21 +212,23 @@ For more information about the Pomodoro Technique:
                             confirmation_state = 'quit'
                         elif key.lower() == 'h':
                             confirmation_state = 'help'
+                        elif key.lower() == 'm':
+                            timer.toggle_mute()
                 
                 time.sleep(0.1)
                 
                 # Check for warning before checking session change
                 if timer.should_play_warning():
-                    play_warning()
+                    play_warning(timer.is_muted)
                 
                 session_changed = timer.tick()
                 if session_changed:
                     if timer.current_session == SessionType.WORK:
-                        play_break_end() # Sound for break ending
+                        play_break_end(timer.is_muted) # Sound for break ending
                     else:
                         # Work session completed - save it and play sound
                         add_session(timer.settings[SessionType.WORK] // 60)
-                        play_work_end() # Sound for work ending
+                        play_work_end(timer.is_muted) # Sound for work ending
                 
                 # Update display with a freshly generated renderable
                 # This is a key fix to prevent stale buffer issues in Rich Live
