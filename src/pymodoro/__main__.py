@@ -183,11 +183,10 @@ For more information about the Pomodoro Technique:
                     else:
                         play_work_end() # Sound for work ending
                 
-                # Update display - show confirmation overlay if needed
-                if confirmation_state:
-                    live.update(ui.get_renderable(confirmation_state))
-                else:
-                    live.update(ui.get_renderable())
+                # Update display with a freshly generated renderable
+                # This is a key fix to prevent stale buffer issues in Rich Live
+                new_renderable = ui.get_renderable(confirmation_state)
+                live.update(new_renderable)
     finally:
         console.print("[bold green]🍅 Pymodoro finished. Great work![/bold green]")
 
