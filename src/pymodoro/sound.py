@@ -185,16 +185,22 @@ def play_notification_sound(sound_type: str = "default") -> bool:
     return True
 
 
-def play_work_end() -> bool:
+def play_work_end(muted: bool = False) -> bool:
     """Play a sound to signify the end of a work session."""
+    if muted:
+        return True
     return play_notification_sound("work_end")
 
 
-def play_break_end() -> bool:
+def play_break_end(muted: bool = False) -> bool:
     """Play a sound to signify the end of a break session."""
+    if muted:
+        return True
     return play_notification_sound("break_end")
 
 
-def play_warning() -> bool:
+def play_warning(muted: bool = False) -> bool:
     """Play a warning sound to notify user of approaching session end."""
+    if muted:
+        return True
     return play_notification_sound("default")

@@ -25,14 +25,14 @@ class MainScreen(Screen):
         self.art_display = ArtDisplay()
     
     def render(self, session_type: SessionType, time_left: float, total_time: float, 
-              pomodoros_completed: int, is_paused: bool) -> Any:
+              pomodoros_completed: int, is_paused: bool, is_muted: bool = False) -> Any:
         """Render the main timer screen."""
         # Get theme and display color
         theme = self.theme_manager.get_theme(session_type, is_paused)
         display_color = self.theme_manager.get_display_color(session_type, is_paused)
         
         # Create all components
-        header = self.header.render(theme, pomodoros_completed, is_paused, display_color)
+        header = self.header.render(theme, pomodoros_completed, is_paused, display_color, is_muted)
         art = self.art_display.render(theme.art)
         timer = self.timer_display.render(time_left, display_color)
         
@@ -64,7 +64,7 @@ class HelpScreen(Screen):
         self.theme_manager = theme_manager
         self.dialog = Dialog(theme_manager.dimensions)
     
-    def render(self, session_type: SessionType, time_left: float, pomodoros_completed: int, is_paused: bool) -> Any:
+    def render(self, session_type: SessionType, time_left: float, pomodoros_completed: int, is_paused: bool, is_muted: bool = False) -> Any:
         """Render the help screen."""
         theme = self.theme_manager.get_theme(session_type, is_paused)
         display_color = self.theme_manager.get_display_color(session_type, is_paused)
@@ -80,13 +80,13 @@ class ConfirmationScreen(Screen):
         self.dialog = Dialog(theme_manager.dimensions)
     
     def render(self, confirmation_type: str, session_type: SessionType, time_left: float, 
-              pomodoros_completed: int, is_paused: bool) -> Any:
+              pomodoros_completed: int, is_paused: bool, is_muted: bool = False) -> Any:
         """Render a confirmation dialog."""
         theme = self.theme_manager.get_theme(session_type, is_paused)
         display_color = self.theme_manager.get_display_color(session_type, is_paused)
         
         confirmation_panel = self.dialog.render_confirmation(
-            confirmation_type, theme, time_left, pomodoros_completed, display_color
+            confirmation_type, theme, time_left, pomodoros_completed, display_color, is_muted
         )
         return Alignment.center_vertical_and_horizontal(confirmation_panel)
 

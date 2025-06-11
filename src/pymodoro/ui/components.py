@@ -57,7 +57,7 @@ class ProgressBar:
 class Header:
     """Renders session title, pomodoro number, and pause status."""
     
-    def render(self, theme: SessionTheme, pomodoros_completed: int, is_paused: bool, display_color: str) -> Text:
+    def render(self, theme: SessionTheme, pomodoros_completed: int, is_paused: bool, display_color: str, is_muted: bool = False) -> Text:
         """Render header text component."""
         try:
             header = Text(no_wrap=True, justify="center")
@@ -73,10 +73,20 @@ class Header:
                 header.append(" ", style=f"bold {display_color}")
                 header.append(theme.short_name, style=f"bold {display_color}")
             
+            # Add status indicators
+            status_added = False
+            
             # Add paused indicator if needed
             if is_paused:
                 header.append(" | ", style=f"bold {display_color}")
                 header.append("PAUSED", style="bold yellow")
+                status_added = True
+            
+            # Add muted indicator if needed
+            if is_muted:
+                separator = " | " if status_added else " | "
+                header.append(separator, style=f"bold {display_color}")
+                header.append("🔇 MUTED", style="bold dim")
             
             return header
         except Exception:
@@ -109,6 +119,7 @@ class Dialog:
             help_table.add_column("Action", style="white")
             
             help_table.add_row("SPACE", "Pause/Resume the current session")
+            help_table.add_row("m", "Mute/Unmute sounds")
             help_table.add_row("n", "Skip to next session (with confirmation)")
             help_table.add_row("r", "Reset current session (with confirmation)")
             help_table.add_row("q", "Quit application (with confirmation)")
@@ -156,7 +167,7 @@ class Dialog:
             fallback_content = Text("Help screen unavailable", justify="center", style="white")
             return Panel(fallback_content, border_style="white", title="Help")
     
-    def render_confirmation(self, confirmation_type: str, theme: SessionTheme, time_left: float, pomodoros_completed: int, display_color: str) -> Panel:
+    def render_confirmation(self, confirmation_type: str, theme: SessionTheme, time_left: float, pomodoros_completed: int, display_color: str, is_muted: bool = False) -> Panel:
         """Render confirmation dialog."""
         try:
             # Create confirmation content
