@@ -1,5 +1,4 @@
 # src/pymodoro/sound.py
-import os
 import platform
 import subprocess
 import sys
