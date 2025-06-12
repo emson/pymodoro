@@ -20,6 +20,7 @@ class PomodoroTimer:
         self.pomodoros_completed = 0
         self.start_time = None
         self._last_tick_time = None
+        self.session_start_time = None  # Track when current session actually started
         self.warning_minutes = warning_mins
         self.long_break_frequency = long_break_frequency  # How many work sessions before long break
         self._warning_played = False  # Track if warning has been played for current session
@@ -30,6 +31,10 @@ class PomodoroTimer:
             self.is_running = True
             self.start_time = time.monotonic()
             self._last_tick_time = self.start_time
+            # Only set session start time if we're starting a new session
+            if self.session_start_time is None:
+                from datetime import datetime
+                self.session_start_time = datetime.now()
 
     def pause(self):
         if self.is_running:
@@ -58,6 +63,9 @@ class PomodoroTimer:
         self.time_left = self.settings[self.current_session]
         self._last_tick_time = time.monotonic()
         self._warning_played = False  # Reset warning state on reset
+        # Reset session start time to now
+        from datetime import datetime
+        self.session_start_time = datetime.now()
         # Keep the timer running state as it was
     
     def should_play_warning(self) -> bool:
@@ -97,7 +105,11 @@ class PomodoroTimer:
         self.time_left = self.settings[self.current_session]
         self._last_tick_time = time.monotonic()
         self._warning_played = False  # Reset warning state for new session
+        # Reset session start time for new session
+        from datetime import datetime
+        self.session_start_time = datetime.now() if self.is_running else None
         # Ensure it's running when skipping to the next session
         if skip:
             self.is_running = True
+            self.session_start_time = datetime.now()
 

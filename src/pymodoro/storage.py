@@ -5,7 +5,7 @@ import platform
 import tempfile
 import subprocess
 import sys
-from datetime import date
+from datetime import date, datetime  
 from pathlib import Path
 from typing import Optional
 
@@ -46,7 +46,7 @@ def load_or_initialize_day_log() -> DayLog:
         
         return DayLog(**data)
     
-    except (yaml.YAMLError, ValidationError, OSError) as e:
+    except (yaml.YAMLError, ValidationError, OSError):
         # Back up corrupt file and start fresh
         backup_path = log_file.with_suffix('.yaml.corrupt')
         try:
@@ -88,13 +88,12 @@ def save_day_log(day_log: DayLog) -> None:
         raise
 
 
-def add_session(duration_minutes: int = 25, notes: Optional[str] = None) -> None:
+def add_session(duration_minutes: int = 25, notes: Optional[str] = None, start_time: Optional[datetime] = None) -> None:
     """Add a new session to today's log."""
-    from datetime import datetime
     
     day_log = load_or_initialize_day_log()
     session = Session(
-        start=datetime.now(),
+        start=start_time or datetime.now(),
         duration_minutes=duration_minutes,
         notes=notes
     )

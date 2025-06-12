@@ -184,7 +184,7 @@ For more information about the Pomodoro Technique:
                                     current_session_type = timer.current_session
                                     # If skipping a work session, save it first
                                     if current_session_type == SessionType.WORK:
-                                        add_session(timer.settings[SessionType.WORK] // 60)
+                                        add_session(timer.settings[SessionType.WORK] // 60, start_time=timer.session_start_time)
                                     timer.next_session(skip=True)
                                     # Play sound asynchronously after state change
                                     if current_session_type == SessionType.WORK:
@@ -227,7 +227,7 @@ For more information about the Pomodoro Technique:
                         play_break_end(timer.is_muted) # Sound for break ending
                     else:
                         # Work session completed - save it and play sound
-                        add_session(timer.settings[SessionType.WORK] // 60)
+                        add_session(timer.settings[SessionType.WORK] // 60, start_time=timer.session_start_time)
                         play_work_end(timer.is_muted) # Sound for work ending
                 
                 # Update display with a freshly generated renderable
