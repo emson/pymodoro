@@ -6,10 +6,15 @@ authors = [{ name = "Ben Emson", email = "mail@benemson.com" }]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "playsound3>=3.2.8",
     "pyaml>=25.5.0",
     "pydantic>=2.11.5",
     "rich>=14.0.0",
 ]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project.scripts]
 pymodoro = "pymodoro.__main__:main"
