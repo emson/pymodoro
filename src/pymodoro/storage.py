@@ -46,7 +46,7 @@ def load_or_initialize_day_log() -> DayLog:
         
         return DayLog(**data)
     
-    except (yaml.YAMLError, ValidationError, OSError):
+    except (yaml.YAMLError, ValidationError, OSError, TypeError):
         # Back up corrupt file and start fresh
         backup_path = log_file.with_suffix('.yaml.corrupt')
         try:
